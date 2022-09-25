@@ -1,0 +1,19 @@
+{
+  "name": "create-a-bracket-json-with-ease-",
+  "version": "1.0.0",
+  "description": "This project is meant to help with making a working bracket.json for the lazer tournament client.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/konotorii/Create-a-bracket-json-with-ease-.git"
+  },
+  "author": "Konotorii",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/konotorii/Create-a-bracket-json-with-ease-/issues"
+  },
+  "homepage": "https://github.com/konotorii/Create-a-bracket-json-with-ease-#readme"
+}
