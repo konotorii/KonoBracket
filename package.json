@@ -1,19 +1,37 @@
 {
-  "name": "create-a-bracket-json-with-ease-",
+  "name": "create-a-bracket-json-with-ease",
   "version": "1.0.0",
   "description": "This project is meant to help with making a working bracket.json for the lazer tournament client.",
-  "main": "index.js",
+  "main": "index.py",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "compile": "tsc",
+    "fix": "gts fix",
+    "prepare": "npm.cmd run compile",
+    "pretest": "npm.cmd run compile",
+    "posttest": "npm.cmd run lint"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/konotorii/Create-a-bracket-json-with-ease-.git"
+    "url": "git+https://github.com/konotorii/Create-a-bracket-json-with-ease.git"
   },
   "author": "Konotorii",
-  "license": "ISC",
+  "license": "GPL",
   "bugs": {
-    "url": "https://github.com/konotorii/Create-a-bracket-json-with-ease-/issues"
+    "url": "https://github.com/konotorii/Create-a-bracket-json-with-ease/issues"
   },
-  "homepage": "https://github.com/konotorii/Create-a-bracket-json-with-ease-#readme"
+  "homepage": "https://github.com/konotorii/Create-a-bracket-json-with-ease#readme",
+  "devDependencies": {
+    "@types/luxon": "^3.0.1",
+    "@types/node": "^14.11.2",
+    "gts": "^3.1.1",
+    "typescript": "~4.7.0"
+  },
+  "dependencies": {
+    "@google-cloud/local-auth": "^2.1.0",
+    "googleapis": "^105.0.0",
+    "luxon": "^3.0.4"
+  }
 }
