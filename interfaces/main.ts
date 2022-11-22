@@ -1,14 +1,16 @@
-import { Match } from './matches';
-import { Progression } from './progressions';
+import { Round } from './round';
+import { Match } from './match';
+import { Progression } from './progression';
 import { Ruleset } from './ruleset';
-import { Team } from './teams';
+import { Team } from './team';
 
 export interface Bracket {
     Ruleset: Ruleset;
     Matches: Match[]; 
-    Rounds: any; // need to change
+    Rounds: Round[]; // need to change
     Teams: Team[];
     Progressions: Progression[];
     ChromaKeyWidth: number;
     PlayersPerTeam: number;
+    AutoProgressScreens: boolean;
 }
