@@ -6,10 +6,10 @@ import { Team } from './team';
 
 export interface Bracket {
     Ruleset: Ruleset;
-    Matches: Match[]; 
-    Rounds: Round[]; // need to change
-    Teams: Team[];
-    Progressions: Progression[];
+    Matches?: Match[]; 
+    Rounds?: Round[]; // need to change
+    Teams?: Team[];
+    Progressions?: Progression[];
     ChromaKeyWidth: number;
     PlayersPerTeam: number;
     AutoProgressScreens: boolean;

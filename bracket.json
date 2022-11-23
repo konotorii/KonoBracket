@@ -1,10 +1,5 @@
 {
-    "Ruleset": {
-        "ShortName": "osu",
-        "Name": "osu!",
-        "InstantiationInfo": "osu.Game.Rulesets.Osu.OsuRuleset, osu.Game.Rulesets.Osu",
-        "Available": true
-    },
+    "Ruleset": {},
     "Matches": [],
     "Rounds": [],
     "Teams": [],

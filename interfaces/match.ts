@@ -9,7 +9,7 @@ export interface Match {
     PicksBans: any; // need to change
     Current: boolean;
     Date: Date;
-    ConditionalMatches: any; // need to change, no clue what it even is
+    ConditionalMatches?: any; // need to change, no clue what it even is
     Position: any; // no clue
     Acronyms: any[]; 
     WinnerColour: string;
