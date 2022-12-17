@@ -5,8 +5,8 @@ export interface Team {
     FullName: string;
     FlagName: string;
     Acronym: string;
-    SeedingResults?: SeedingResult[]; // needs to be changed
-    Seed: string;
+    SeedingResults?: SeedingResult[];
+    Seed: number;
     LastYearPlacing: number;
     AverageRank?: number;
     Players: Player[];

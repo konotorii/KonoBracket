@@ -3,3 +3,8 @@
 /dist
 /build
 .vscode
+/sheets/*
+/dump/*
+/py
+.env
+bracket.json
