@@ -4,5 +4,7 @@ export default {
     bracket_type: process.env.BRACKET_TYPE,
     ruleset: process.env.RULESET,
     sheet_template: process.env.SHEET_TEMPLATE,
-    osu_api_key: process.env.OSU_API_KEY
+    osu_api_key: process.env.OSU_API_KEY,
+    scoring: process.env.SCORING,
+    filter_mods: String(process.env.FILTER_MODS).split(',')
 }

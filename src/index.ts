@@ -39,18 +39,39 @@ async function main() {
 
     let csv_headers: any[] = []
 
-    const sheet_file_csv = fs.readFileSync('./sheets/teams.csv', { encoding: 'utf-8' })
+    let sheet_file_csv = null
+
+    let scores
+
+    sheet_file_csv = fs.readFileSync('./sheets/seeds.csv', { encoding: 'utf-8' })
+
+    consola.info('Processing scores...')
+
+    if (!env_check.sheet_template) {
+        await guessHeaders('./sheets/seeds.csv')
+    }
+    else {
+        if (env.sheet_template == 'hitomi_v4') {
+            csv_headers = hitomi_v4_filteredScores
+
+            const e = await parseCsv(sheet_file_csv, csv_headers, 'seeds')
+            scores = e.data
+        }
+    }
+
+    consola.success('Scores processed.')
+
+    csv_headers = []
+    sheet_file_csv = null
+
+    sheet_file_csv = fs.readFileSync('./sheets/teams.csv', { encoding: 'utf-8' })
 
     let csv_parse
 
     // Check if sheet template was provided / isn't supported, if so it tries different headers to parse without support. UNSTABLE!
 
     if (!env_check.sheet_template) {
-        let sheets_check = false
-
-        while (sheets_check) {
-            // Needs to be written
-        }
+        await guessHeaders('./sheets/teams.csv')
     }
     else {
         if (env.sheet_template == 'hitomi_v4') {
@@ -67,7 +88,7 @@ async function main() {
                 }
                 i += 1
             }
-            const result = await parseCsv(sheet_file_csv, csv_headers)
+            const result = await parseCsv(sheet_file_csv, csv_headers, 'teams')
             csv_parse = result.data
         }
     }
@@ -75,6 +96,7 @@ async function main() {
     // Start logic
 
     consola.info(`Amount of teams found: ${csv_parse.length - 1}`)
+    await delay(100)
 
     // Ruleset stuff
 
@@ -105,7 +127,7 @@ async function main() {
         bracket_json.Ruleset.Available = true
     }
 
-    consola.success(`Ruleset: ${env.ruleset} applied.`)
+    consola.success(`Ruleset: '${env.ruleset}' applied.`)
 
     // Teams
 
@@ -120,14 +142,25 @@ async function main() {
             while (count <= env.player_per_team) {
                 const res = await superagent.get(`https://osu.ppy.sh/api/get_user?k=${env.osu_api_key}&u=${teams[team][`p${count}_id`]}&type=id`)
                 const player = res.body
-                players.push({ id: teams[team][`p${count}_id`], Username: teams[team][`p${count}_username`], country_code: player[0]['country'], Rank: player[0]['pp_rank'], CoverUrl: '' })
+                // consola.log(player)
+                if (!player[0]) {
+                    players.push({ id: 0, Username: 'API ERROR', country_code: '', Rank: 0, CoverUrl: '' })
+                }
+                else {
+                    players.push({ id: teams[team][`p${count}_id`], Username: teams[team][`p${count}_username`], country_code: player[0]['country'], Rank: player[0]['pp_rank'], CoverUrl: '' })
+                }
 
                 await delay(100)
                 count += 1
             }
+            let avg_rank = 0
+            players.forEach((e) => {
+                avg_rank += e.Rank
+            })
+            avg_rank /= env.player_per_team
             bracket_json.Teams.push({
                 FullName: teams[team]['Real_Team'], FlagName: '', Acronym: '', Seed: 0, LastYearPlacing: 0,
-                AverageRank: teams[team]['Avg Rank'].replace(/\D/g, ''), Players: players
+                AverageRank: avg_rank, Players: players
             })
         }
     }
@@ -137,34 +170,65 @@ async function main() {
     fs.writeFileSync('./bracket.json', JSON.stringify(bracket_json)) // File saved
 }
 
-async function parseCsv(file: any, headers: string[]) {
+async function parseCsv(file: any, headers: string[], type: string) {
     let data
     try {
         parse(file, {
             delimiter: ',',
             columns: headers,
             cast: (columnValue, context) => {
-                if (context.column === "p1_id" || context.column === "p2_id" || context.column === "p3_id" || context.column === "p4_id" || context.column === "p5_id" || context.column === "p6_id" || context.column === "p7_id" || context.column === "p8_id") {
-                    return Number(columnValue)
-                }
+                if (
+                    context.column === "p1_id" || context.column === "p2_id" ||
+                    context.column === "p3_id" || context.column === "p4_id" ||
+                    context.column === "p5_id" || context.column === "p6_id" ||
+                    context.column === "p7_id" || context.column === "p8_id" ||
+                    context.column === "Map ID" || context.column === "User ID" ||
+                    context.column === "Score" || context.column === "Max Combo" ||
+                    context.column === "Hit 300" || context.column === 'Hit 100' ||
+                    context.column === 'Hit 50' || context.column === 'Hit Miss'
 
+                ) {
+                    return Number(columnValue.replace(/\,/g, ''))
+                }
+                if (context.column === 'Mods') {
+                    let ewe
+                    env.filter_mods.forEach((e) => {
+                        ewe = columnValue.replace(e, '')
+                    })
+                    return ewe
+                }
+                if (
+                    context.column === 'Filter' || context.column === 'Passed'
+                ) {
+                    if (columnValue === "TRUE") {
+                        return true
+                    }
+                    else if (columnValue === 'FALSE') {
+                        return false
+                    }
+                }
+                if (
+                    context.column === 'Accuracy'
+                ) {
+                    return Number(columnValue.replace('%', '').replace(',', '.'))
+                }
                 return columnValue
             }
-        }, async (err, result) => {
+        }, (err, result) => {
             if (err) {
                 console.log(err)
             }
             // consola.log(result)
-            // data = result
-            // return { data: result, passed: true }
-            await fs.writeFileSync('./dump/teams.json', JSON.stringify(result))
+            fs.writeFileSync(`./dump/${type}.json`, JSON.stringify(result))
         })
-        const filee = await fs.readFileSync('./dump/teams.json', { encoding: 'utf-8' })
+        await delay(2000) // This it to wait for parse to finish
+        const filee = await fs.readFileSync(`./dump/${type}.json`, { encoding: 'utf-8' })
         data = JSON.parse(filee)
         return { data, passed: true }
 
     }
     catch (err) {
+        consola.error(err)
         return { passed: false }
     }
 }
@@ -231,6 +295,10 @@ async function checkEnv() {
     return check
 }
 
+async function guessHeaders(file_path: string) {
+
+}
+
 const hitomi_v4_sortedTeamData = [
     'Team', 'Real_Team', 'Avg Rank', 'timezone',
     'I', 'p1_id', 'p2_id', 'p3_id', 'p4_id', 'p5_id', 'p6_id', 'p7_id', 'p8_id', 'p9_id', 'p10_id', 'p11_id', 'p12_id', 'p13_id', 'p14_id', 'p15_id', 'p16_id',
@@ -239,6 +307,10 @@ const hitomi_v4_sortedTeamData = [
     'D', 'p1_discord', 'p2_discord', 'p3_discord', 'p4_discord', 'p5_discord', 'p6_discord', 'p7_discord', 'p8_discord', 'p9_discord', 'p10_discord', 'p11_discord', 'p12_discord', 'p13_discord', 'p14_discord', 'p15_discord', 'p16_discord',
     'R', 'p1_rank', 'p2_rank', 'p3_rank', 'p4_rank', 'p5_rank', 'p6_rank', 'p7_rank', 'p8_rank', 'p9_rank', 'p10_rank', 'p11_rank', 'p12_rank', 'p13_rank', 'p14_rank', 'p15_rank', 'p16_rank',
     'F', 'p1_flag', 'p2_flag', 'p3_flag', 'p4_flag', 'p5_flag', 'p6_flag', 'p7_flag', 'p8_flag', 'p9_flag', 'p10_flag', 'p11_flag', 'p12_flag', 'p13_flag', 'p14_flag', 'p15_flag', 'p16_flag'
+]
+
+const hitomi_v4_filteredScores = [
+    'Filter', '', '', 'Pick', 'FM', 'Beatmap', 'Beatmap_Title', 'Map ID', 'Player', 'User ID', 'Team', 'Passed', 'Score', 'Accuracy', 'Max Combo', 'Hit 300', 'Hit 100', 'Hit 50', 'Hit Miss', 'Mods'
 ]
 
 const supported_bracket_stages = [
