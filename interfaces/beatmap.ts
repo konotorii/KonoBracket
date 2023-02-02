@@ -1,6 +1,6 @@
 export interface Beatmap {
     ID: number;
-    Mods: string;
+    Mods?: string;
     Score?: number;
     Seed?: number;
 }

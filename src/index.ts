@@ -1,3 +1,5 @@
+import { Scoring } from './../interfaces/scoring';
+import { Round } from './../interfaces/round';
 import { Player } from './../interfaces/player';
 import { Bracket } from './../interfaces/main';
 import * as fs from "fs";
@@ -10,7 +12,7 @@ import delay from 'delay';
 import * as dotenv from 'dotenv';
 dotenv.config();
 const consola = require('consola');
-import superagent = require('superagent');
+const superagent = require('superagent');
 import env from '../env.config';
 
 async function main() {
@@ -129,6 +131,16 @@ async function main() {
 
     consola.success(`Ruleset: '${env.ruleset}' applied.`)
 
+    consola.info('Processing mappools...')
+
+    bracket_json.Rounds = []
+
+    // Qualifiers
+    const quals = await quals_mappool()
+    if (quals.length != 0) bracket_json.Rounds.push(quals.round);
+
+    consola.success('Mappools processed.')
+
     // Teams
 
     consola.info('Processing teams and players...')
@@ -166,6 +178,28 @@ async function main() {
     }
 
     consola.success(`Teams and Players processed.`)
+
+    consola.info('Processing seedings...')
+
+    const seed_teams = bracket_json.Teams
+
+    for (let team in seed_teams) {
+
+        const scoress = scores.filter((e: any) => {
+            return e.Team == seed_teams[team]['FullName']
+        })
+
+        // Calculate scores and seedings
+
+    }
+
+    consola.success('Seedings processed.')
+
+    consola.info('Creating matches...')
+
+    consola.success(`Created '${bracket_json.ChromaKeyWidth}`)
+
+    consola.success(`Completed entire bracket.json.`)
 
     fs.writeFileSync('./bracket.json', JSON.stringify(bracket_json)) // File saved
 }
@@ -296,6 +330,58 @@ async function checkEnv() {
 }
 
 async function guessHeaders(file_path: string) {
+
+}
+
+async function quals_mappool() {
+    let round: Round = {
+        "Name": 'Qualifiers',
+        "Description": "Qualifiers",
+        "BestOf": env.qf_best_of,
+        "Beatmaps": [],
+        "StartDate": DateTime.now().toJSDate(),
+        'Matches': []
+    }
+
+    if (env.qual_nm[0] !== "") {
+        for (let nm in env.qual_nm) {
+            round.Beatmaps.push({ "ID": Number(env.qual_nm[nm]), "Mods": "NM" })
+        }
+    }
+    if (env.qual_hd[0] !== "") {
+        for (let e in env.qual_hd) {
+            round.Beatmaps.push({ "ID": Number(env.qual_hd[e]), "Mods": "HD" })
+        }
+    }
+    if (env.qual_ez[0] !== "") {
+        for (let e in env.qual_ez) {
+            round.Beatmaps.push({ "ID": Number(env.qual_ez[e]), "Mods": 'EZ' })
+        }
+    }
+    if (env.qual_fl[0] !== "") {
+        for (let e in env.qual_fl) {
+            round.Beatmaps.push({ "ID": Number(env.qual_fl[e]), "Mods": 'FL' })
+        }
+    }
+    if (env.qual_hr[0] !== "") {
+        for (let e in env.qual_hr) {
+            round.Beatmaps.push({ 'ID': Number(env.qual_hr[e]), 'Mods': 'HR' })
+        }
+    }
+    if (env.qual_dt[0] !== "") {
+        for (let e in env.qual_dt) {
+            round.Beatmaps.push({ "ID": Number(env.qual_dt[e]), 'Mods': 'DT' })
+        }
+    }
+
+    return { round, length: round.Beatmaps.length }
+}
+
+async function scoring(method: Scoring) {
+    
+}
+
+async function getMapInfo(id: string) {
 
 }
 
