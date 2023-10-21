@@ -6,5 +6,6 @@
 /sheets/*
 /dump/*
 /py
-.env
+env
 bracket.json
+.env
